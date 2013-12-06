@@ -109,31 +109,6 @@ int CMinesweeper::ResetTrial(int generation)
 	//reset its memory
 	m_MemoryMap.Reset();
 
-	// Flush neural network
-	//this will store all the inputs for the NN
-	vector<double> inputs;	
-
-	//grab sensor readings
-	//	TestSensors(objects);
-
-
-	//input sensors into net
-	for (int sr=0; sr<m_vecdSensors.size(); ++sr)
-	{
-		inputs.push_back(m_vecdSensors[sr]);
-
-	//	inputs.push_back(m_vecFeelers[sr]);
-	}
-
-//	inputs.push_back(m_bCollided);
-	// Reward
-	inputs.push_back(0);
-	m_bCollided = false;
-	// Turning point
-	inputs.push_back(0);
-	//update the brain and get feedback
-	vector<double> output = m_pItsBrain->Update(inputs, CNeuralNet::snapshot);
-
 	m_bActive = true;
 	if (reward < 0.01) {
 		return 0;
@@ -235,8 +210,13 @@ bool CMinesweeper::Update(vector<SPoint> &objects)
 
 		inputs.push_back(turningPoint);
 
+		vector<double> output;
+		if (reward < 0.01) {
 		//update the brain and get feedback
-		vector<double> output = m_pItsBrain->Update(inputs, CNeuralNet::active);
+			output = m_pItsBrain->Update(inputs, CNeuralNet::active);
+		} else {
+			output = m_pItsBrain->Update(inputs, CNeuralNet::snapshot);
+		}
 
 		//make sure there were no errors in calculating the 
 		//output
